@@ -4,8 +4,8 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'gitexplorer/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "gitexplorer"
-  spec.version       = Gitexplorer::VERSION
+  spec.name          = "git-explorer"
+  spec.version       = GitExplorer::VERSION
   spec.authors       = ["Alex Rocha"]
   spec.email         = ["alex.rochas@yahoo.com.br"]
 
