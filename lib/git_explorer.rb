@@ -26,10 +26,9 @@ module GitExplorer
   class Explorer < Thor
     include Thor::Actions
 
-    # TODO receive root path by parameter
     # TODO refactor and extract maps to lambdas
     desc "use for explore recursively directories and show actual status of git repositories", "gitx explore ."
-    def explore(root_dir)
+    def explore(root_dir="./")
       run("find #{root_dir} -type f -name .gitignore", config={:capture=>true, :verbose=>false})
           .split("\n")
           .map{|file| file.gsub(/\.gitignore/,'')}
