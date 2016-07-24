@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require "bundler/setup"
+require "git_explorer"
+
+explorer = GitExplorer::Explorer.new
+explorer.explore(ARGV[0])
+
