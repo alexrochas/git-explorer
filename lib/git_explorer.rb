@@ -30,10 +30,10 @@ module GitExplorer
     # TODO refactor and extract maps to lambdas
     desc "use for explore recursively directories and show actual status of git repositories", "gitx explore ."
     def explore(root_dir)
-      run("find #{root_dir} -type f -name .gitignore", config={:capture=>true})
+      run("find #{root_dir} -type f -name .gitignore", config={:capture=>true, :verbose=>false})
           .split("\n")
           .map{|file| file.gsub(/\.gitignore/,'')}
-          .map{|dir| run("basename `git -C #{dir} rev-parse --show-toplevel`; git -C #{dir} status", config={:capture=>true})}
+          .map{|dir| run("basename `git -C #{dir} rev-parse --show-toplevel`; git -C #{dir} status", config={:capture=>true, :verbose=>false})}
           .map{|status| status >> GitExplorer::extract_status}
           .map{|status| say "project #{status.project_name} is #{status.status} on branch #{status.branch} -> #{status.files}"}
     end
