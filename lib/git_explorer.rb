@@ -10,15 +10,16 @@ end
 
 module GitExplorer
 
-  GitStatus = Struct.new("GitStatus",:status,:branch,:files,)
+  GitStatus = Struct.new("GitStatus",:status,:project_name,:branch,:files,)
 
   def self.extract_status
     -> (status_output) {
+      project_name = status_output[/^(?<project_name>.*)$/, "project_name"]
       branch = status_output[/On branch\s(?<branch>.*)/, "branch"]
       status = :up_to_date unless status_output[/not staged/]
       status = :not_staged if status_output[/not staged/]
       files = status_output.scan(/modified: \s*(.*)$/).flatten
-      GitStatus.new(status, branch, files)
+      GitStatus.new(status, project_name, branch, files)
     }
   end
 
@@ -28,13 +29,13 @@ module GitExplorer
     # TODO receive root path by parameter
     # TODO refactor and extract maps to lambdas
     desc "use for explore recursively directories and show actual status of git repositories", "gitx explore ."
-    def explore
-      run("find ./ -type f -name .gitignore", config={:capture=>true})
+    def explore(root_dir)
+      run("find #{root_dir} -type f -name .gitignore", config={:capture=>true})
           .split("\n")
           .map{|file| file.gsub(/\.gitignore/,'')}
-          .map{|dir| run("git -C #{dir} status", config={:capture=>true})}
+          .map{|dir| run("basename `git -C #{dir} rev-parse --show-toplevel`; git -C #{dir} status", config={:capture=>true})}
           .map{|status| status >> GitExplorer::extract_status}
-          .map{|status| say "#{status.status} on branch #{status.branch} -> #{status.files}"}
+          .map{|status| say "project #{status.project_name} is #{status.status} on branch #{status.branch} -> #{status.files}"}
     end
 
   end

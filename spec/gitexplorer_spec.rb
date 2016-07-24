@@ -14,24 +14,26 @@ describe GitExplorer do
   describe '#explore' do
     context 'when exploring directories' do
       let(:up_to_date_message) {
-        "On branch master
+        "gitexplorer
+         On branch master
          Your branch is up-to-date with 'origin/master'.
          nothing to commit, working directory clean"
       }
       let(:not_staged_message) {
-        "On branch master
+        "gitexplorer
+         On branch master
          Changes not staged for commit:
          (use \"git add <file>...\" to update what will be committed)
          (use \"git checkout -- <file>...\" to discard changes in working directory)
 
-         modified:   ../bin/console
+         modified:   ../bin/explore
          modified:   gitexplorer.rb
          modified:   ../spec/gitexplorer_spec.rb
 
          no changes added to commit (use \"git add\" and/or \"git commit -a\")"
       }
-      it { expect(up_to_date_message >> GitExplorer::extract_status).to eq(GitExplorer::GitStatus.new(:up_to_date, "master", [])) }
-      it { expect(not_staged_message >> GitExplorer::extract_status).to eq(GitExplorer::GitStatus.new(:not_staged, "master", ["../bin/console", "gitexplorer.rb", "../spec/gitexplorer_spec.rb"])) }
+      it { expect(up_to_date_message >> GitExplorer::extract_status).to eq(GitExplorer::GitStatus.new(:up_to_date, "gitexplorer", "master", [])) }
+      it { expect(not_staged_message >> GitExplorer::extract_status).to eq(GitExplorer::GitStatus.new(:not_staged, "gitexplorer", "master", ["../bin/explore", "gitexplorer.rb", "../spec/gitexplorer_spec.rb"])) }
     end
   end
 end
