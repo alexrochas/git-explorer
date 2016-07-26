@@ -1,12 +1,6 @@
 require "gitexplorer/version"
 require "thor"
-
-# TODO extract to a separated gem
-class Object
-  def >>(proc)
-    proc.(self)
-  end
-end
+require "pipeme"
 
 module GitExplorer
 
