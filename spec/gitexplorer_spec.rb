@@ -1,11 +1,5 @@
 require 'spec_helper'
 
-class Object
-  def >>(proc)
-    proc.(self)
-  end
-end
-
 describe GitExplorer do
   it 'has a version number' do
     expect(GitExplorer::VERSION).not_to be nil

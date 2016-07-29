@@ -24,9 +24,13 @@ Start explore with:
 
 All your git repositories from <root_path> will be scanned and the output will be similar to:
 ```
-project <project_name> is up_to_date on branch master -> []
-project <project_name> is up_to_date on branch master -> []
-project <project_name> is not_staged on branch  -> ["<file_name>", "<file_name>", "<file_name>"]
+<project_name> is up_to_date on branch master
+<project_name> is up_to_date on branch master
+<project_name> is not_staged on branch master
+        path/to/file
+        path/to/file
+        path/to/file
+        path/to/file
 ```
 
 ## Release History
