@@ -17,6 +17,10 @@ module GitExplorer
     }
   end
 
+  def self.extract_dir_name
+    -> (dot_git_file_path) { dot_git_file_path.gsub(/\.git$/,'') }
+  end
+
   class Explorer < Thor
     include Thor::Actions
 
@@ -25,7 +29,7 @@ module GitExplorer
     def explore(root_dir="./")
       run("find #{root_dir} -type d -name .git", config={:capture=>true, :verbose=>false})
           .split("\n")
-          .map{|file| file.gsub(/\.git/,'')}
+          .map{extract_dir_name}
           .map{|dir| run("basename `git -C #{dir} rev-parse --show-toplevel`; git -C #{dir} status", config={:capture=>true, :verbose=>false})}
           .map{|status| status >> GitExplorer::extract_status}
           .map{|status| say(message="#{status.project_name} is #{status.status} on branch #{status.branch}\n#{status.files.map{|f| "\t#{f}\n"}.join}", color=(:red if status.status.equal?(:not_staged)))}
