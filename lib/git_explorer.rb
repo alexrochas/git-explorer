@@ -61,7 +61,13 @@ module GitExplorer
           .map{|line| Line.new(line)}
           .map{|line| Line.new(line.full_line, '', git_repository?(extract_path(line.full_line, root_dir)))}
           .map{|line| Line.new(line.full_line, (extract_light_status(git_status(extract_path(line.full_line, root_dir))) if line.git_repository == true), line.git_repository)}
-          .map{|line| say(message="#{line.full_line} #{'[' + line.state.branch + ']' unless line.git_repository == false} #{'✖' if line.git_repository == true and line.state.status != :up_to_date} #{'✔' if line.git_repository == true and line.state.status == :up_to_date}\n")}
+          .map{|line|
+            say(message="#{line.full_line} ")
+            say(message="#{'[' + line.state.branch + ']'} ✖ ", color=(:red)) if line.git_repository == true and line.state.status != :up_to_date
+            say(message="#{'[' + line.state.branch + ']'} ✔ ", color=(:green)) if line.git_repository == true and line.state.status == :up_to_date
+            say(message="\n")
+          }
+
     end
 
     # TODO refactor and extract maps to lambdas
