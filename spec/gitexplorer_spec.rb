@@ -1,6 +1,7 @@
 require 'spec_helper'
 
 describe GitExplorer do
+  include GitExplorer
   it 'has a version number' do
     expect(GitExplorer::VERSION).not_to be nil
   end
@@ -26,11 +27,11 @@ describe GitExplorer do
 
          no changes added to commit (use \"git add\" and/or \"git commit -a\")"
       }
-      it { expect(up_to_date_message >> GitExplorer::extract_status).to eq(GitExplorer::GitStatus.new(:up_to_date, "gitexplorer", "master", [])) }
-      it { expect(not_staged_message >> GitExplorer::extract_status).to eq(GitExplorer::GitStatus.new(:not_staged, "gitexplorer", "master", ["../bin/explore", "gitexplorer.rb", "../spec/gitexplorer_spec.rb"])) }
+      it { expect(up_to_date_message >> extract_status).to eq(GitExplorer::GitStatus.new(:up_to_date, "gitexplorer", "master", [])) }
+      it { expect(not_staged_message >> extract_status).to eq(GitExplorer::GitStatus.new(:not_staged, "gitexplorer", "master", ["../bin/explore", "gitexplorer.rb", "../spec/gitexplorer_spec.rb"])) }
     end
 
-    it { expect(GitExplorer.extract_dir_name.('./static_response_server/.git')).to eq('./static_response_server/')}
-    it { expect(GitExplorer.extract_dir_name.('./alexrochas.github.io/.git')).to eq('./alexrochas.github.io/')}
+    it { expect(extract_dir_name.('./static_response_server/.git')).to eq('./static_response_server/')}
+    it { expect(extract_dir_name.('./alexrochas.github.io/.git')).to eq('./alexrochas.github.io/')}
   end
 end
