@@ -54,31 +54,30 @@ module GitExplorer
     Line = Struct.new('Line', :full_line, :state, :git_repository)
     LOGGER = Logger.new(STDOUT)
 
-    desc 'use for explore one level directories and show actual status of git repositories', 'git explore .'
-    def explore_light(root_dir='./')
-      run("ls #{root_dir} -l | awk '{if(NR>1)print}'", config={:capture=>true, :verbose=>false})
-          .split("\n")
-          .map{|line| Line.new(line)}
-          .map{|line| Line.new(line.full_line, '', git_repository?(extract_path(line.full_line, root_dir)))}
-          .map{|line| Line.new(line.full_line, (extract_light_status(git_status(extract_path(line.full_line, root_dir))) if line.git_repository == true), line.git_repository)}
-          .map{|line|
-            say(message="#{line.full_line} ")
-            say(message="#{'[' + line.state.branch + ']'} ✖ ", color=(:red)) if line.git_repository == true and line.state.status != :up_to_date
-            say(message="#{'[' + line.state.branch + ']'} ✔ ", color=(:green)) if line.git_repository == true and line.state.status == :up_to_date
-            say(message="\n")
-          }
-
-    end
-
     # TODO refactor and extract maps to lambdas
     desc 'use for explore recursively directories and show actual status of git repositories', 'git explore .'
+    method_options [:light,:l] => :boolean, :desc => 'decorate list files with git repository state'
     def explore(root_dir='./')
-      run("find #{root_dir} -type d -name .git", config={:capture=>true, :verbose=>false})
-          .split("\n")
-          .map{|file| file >> extract_dir_name}
-          .map{|dir| run("basename `git -C #{dir} rev-parse --show-toplevel`; git -C #{dir} status", config={:capture=>true, :verbose=>false})}
-          .map{|status| status >> extract_status}
-          .map{|status| say(message="#{status.project_name} is #{status.status} on branch #{status.branch}\n#{status.files.map{|f| "\t#{f}\n"}.join}", color=(:red if status.status.equal?(:not_staged)))}
+      if options.light?
+        run("ls #{root_dir} -l | awk '{if(NR>1)print}'", config={:capture=>true, :verbose=>false})
+            .split("\n")
+            .map{|line| Line.new(line)}
+            .map{|line| Line.new(line.full_line, '', git_repository?(extract_path(line.full_line, root_dir)))}
+            .map{|line| Line.new(line.full_line, (extract_light_status(git_status(extract_path(line.full_line, root_dir))) if line.git_repository == true), line.git_repository)}
+            .map{|line|
+          say(message="#{line.full_line} ")
+          say(message="#{'[' + line.state.branch + ']'} ✖ ", color=(:red)) if line.git_repository == true and line.state.status != :up_to_date
+          say(message="#{'[' + line.state.branch + ']'} ✔ ", color=(:green)) if line.git_repository == true and line.state.status == :up_to_date
+          say(message="\n")
+        }
+      else
+        run("find #{root_dir} -type d -name .git", config={:capture=>true, :verbose=>false})
+            .split("\n")
+            .map{|file| file >> extract_dir_name}
+            .map{|dir| run("basename `git -C #{dir} rev-parse --show-toplevel`; git -C #{dir} status", config={:capture=>true, :verbose=>false})}
+            .map{|status| status >> extract_status}
+            .map{|status| say(message="#{status.project_name} is #{status.status} on branch #{status.branch}\n#{status.files.map{|f| "\t#{f}\n"}.join}", color=(:red if status.status.equal?(:not_staged)))}
+      end
     end
 
   end
