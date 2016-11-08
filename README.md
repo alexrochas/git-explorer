@@ -47,6 +47,10 @@ In a try to add a feature to my old ls command, I've created the **light explore
 * 0.1.0
     * Work in progress.
 
+## Roadmap
+
+* Implement more symbols to express the state of the repository (https://www.reddit.com/r/zsh/comments/2jvi61/where_can_i_find_symbol_codes_for_the_fancy/)
+
 ## Meta
 
 Alex Rocha - [about.me](http://about.me/alex.rochas)
