@@ -4,5 +4,7 @@ require "bundler/setup"
 require "git_explorer"
 
 explorer = GitExplorer::Explorer.new
-explorer.explore(ARGV[0])
+explorer.explore_light(ARGV[0])
+# TODO find an way to pass --light as parameter
+# explorer.explore(ARGV[0])
 
