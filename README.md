@@ -7,7 +7,7 @@
 
 GitExplorer comes from the necessity of get the status of all my local repositories. This tool will scan all your projects searching for git repositories and extract the project name, status and files unstaged.
 
-![Alt text](demo.gif)
+![demo](demo.gif)
 
 ## Installation
 
@@ -34,6 +34,13 @@ All your git repositories from <root_path> will be scanned and the output will b
         path/to/file
         path/to/file
 ```
+
+
+## Light Explorer (in development)
+
+In a try to add a feature to my old ls command, I've created the **light explorer** function. Will behave like a ls but if find any git repository will decorate with branch and current state.
+
+![light demo](light_demo.gif)
 
 ## Release History
 
