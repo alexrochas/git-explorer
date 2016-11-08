@@ -21,7 +21,7 @@ Linux:
 
 Start explore with:
 ```bash
-~$ git-explore <root_path>
+~$ git-explorer explore <root_path>
 ```
 
 All your git repositories from <root_path> will be scanned and the output will be similar to:
@@ -43,7 +43,7 @@ In a try to add a feature to my old ls command, I've created the **light explore
 ![light demo](light_demo.gif)
 
 ```bash
-~$ git explore --light
+~$ git-explorer explore --light
 ```
 
 The output will decorate any directory that is also a git repository:
