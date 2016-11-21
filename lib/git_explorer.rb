@@ -11,8 +11,10 @@ module GitExplorer
     -> (status_output) {
       project_name = status_output[/^(?<project_name>.*)$/, "project_name"]
       branch = status_output[/On branch\s(?<branch>.*)/, "branch"]
-      status = :up_to_date unless status_output[/not staged/]
-      status = :not_staged if status_output[/not staged/]
+      status = []
+      status << :up_to_date if status_output[/up-to-date/]
+      status << :not_staged if status_output[/not staged/]
+      status << :to_be_committed if status_output[/to be committed/]
       files = status_output.scan(/modified: \s*(.*)$/).flatten
       GitStatus.new(status, project_name, branch, files)
     }
@@ -21,8 +23,10 @@ module GitExplorer
   def extract_light_status(status_output)
     project_name = status_output[/^(?<project_name>.*)$/, "project_name"]
     branch = status_output[/On branch\s(?<branch>.*)/, "branch"]
-    status = :up_to_date unless status_output[/not staged/]
-    status = :not_staged if status_output[/not staged/]
+    status = []
+    status << :up_to_date if status_output[/up-to-date/]
+    status << :not_staged if status_output[/not staged/]
+    status << :to_be_committed if status_output[/to be committed/]
     files = status_output.scan(/modified: \s*(.*)$/).flatten
     GitStatus.new(status, project_name, branch, files)
   end
@@ -47,6 +51,24 @@ module GitExplorer
     run("basename `git -C #{path} rev-parse --show-toplevel`; git -C #{path} status", config={:capture=>true, :verbose=>false})
   end
 
+  def translate_status(statuses)
+    possible_status = {
+        to_be_committed: '✚',
+        up_to_date: '✔',
+        not_staged: '●',
+        conflict: '✖'
+    }
+
+    statuses.inject('') {|string, status| string = string + possible_status[status].to_s}
+  end
+
+  def translate_color(statuses)
+    return :green if statuses == [:up_to_date]
+    return :red if statuses == [:conflict]
+
+    :cyan
+  end
+
   class Explorer < Thor
     include Thor::Actions
     include GitExplorer
@@ -65,10 +87,9 @@ module GitExplorer
             .map{|line| Line.new(line.full_line, '', git_repository?(extract_path(line.full_line, root_dir)))}
             .map{|line| Line.new(line.full_line, (extract_light_status(git_status(extract_path(line.full_line, root_dir))) if line.git_repository == true), line.git_repository)}
             .map{|line|
-          say(message="#{line.full_line} ")
-          say(message="#{'[' + line.state.branch + ']'} ✖ ", color=(:red)) if line.git_repository == true and line.state.status != :up_to_date
-          say(message="#{'[' + line.state.branch + ']'} ✔ ", color=(:green)) if line.git_repository == true and line.state.status == :up_to_date
-          say(message="\n")
+              say(message="#{line.full_line} ")
+              say(message="#{'[' + line.state.branch + ']'} #{translate_status(line.state.status)} ", color=(translate_color(line.state.status))) if line.git_repository
+              say(message="\n")
         }
       else
         run("find #{root_dir} -type d -name .git", config={:capture=>true, :verbose=>false})
@@ -79,6 +100,5 @@ module GitExplorer
             .map{|status| say(message="#{status.project_name} is #{status.status} on branch #{status.branch}\n#{status.files.map{|f| "\t#{f}\n"}.join}", color=(:red if status.status.equal?(:not_staged)))}
       end
     end
-
   end
 end
