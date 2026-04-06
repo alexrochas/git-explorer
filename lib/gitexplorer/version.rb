@@ -1,3 +1,1 @@
-module GitExplorer
-  VERSION = "0.2.1"
-end
+require_relative "../git_explorer/version"

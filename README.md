@@ -1,82 +1,166 @@
 # Git Explorer
 
-[![Build Status](https://travis-ci.org/alexrochas/git-explorer.svg?branch=master)](https://travis-ci.org/alexrochas/git-explorer)
-[![Gem Version](https://badge.fury.io/rb/git_explorer.svg)](https://badge.fury.io/rb/git_explorer)
-![](http://ruby-gem-downloads-badge.herokuapp.com/git_explorer)
+`git-explorer` scans local repositories and prints prompt-friendly git metadata.
 
+The tool now understands:
 
-GitExplorer comes from the necessity of get the status of all my local repositories. This tool will scan all your projects searching for git repositories and extract the project name, status and files unstaged.
-
-![demo](demo.gif)
+- the checked-out branch
+- the repository default branch (`origin/HEAD` first, then `main`, then `master`)
+- whether the current branch is `in-sync`, `ahead`, `behind`, or `diverged` from that default branch
+- whether the remote owner looks like a personal or company GitHub account
+- configurable output templates for shell/prompt usage
 
 ## Installation
 
-Linux:
+This project now targets Ruby 3.0+ and ships with a `.ruby-version` pinned to `3.2.6` for local development.
 
 ```sh
-~$ gem install git_explorer
+bundle install
+bundle exec rake spec
 ```
 
-## Usage example
+To install the gem globally:
 
-Start explore with:
-```bash
-~$ git-explorer explore <root_path>
+```sh
+gem install git_explorer
 ```
 
-All your git repositories from <root_path> will be scanned and the output will be similar to:
-```
-<project_name> is up_to_date on branch master
-<project_name> is up_to_date on branch master
-<project_name> is not_staged on branch master
-        path/to/file
-        path/to/file
-        path/to/file
-        path/to/file
+## Commands
+
+Inspect the current repository:
+
+```sh
+git-explorer current
 ```
 
+Inspect a specific path with a custom output template:
 
-## Light Explorer
-
-In a try to add a feature to my old ls command, I've created the **light explorer** function. Will behave like a ls but if find any git repository will decorate with branch and current state.
-
-![light demo](light_demo.gif)
-
-```bash
-~$ git-explorer explore --light
+```sh
+git-explorer current ~/code/my-repo \
+  --format '$status $currentBranch main:$mainBranch sync:$sync owner:$ownerType'
 ```
 
-The output will decorate any directory that is also a git repository:
+Explore repositories recursively:
 
-```bash
-drwxrwxr-x  4 alex alex      4096 Jul 21 16:33 workshopvenues [master] ✖
-drwxrwxr-x  2 alex alex      4096 Ago  6 01:57 zsh-ex
-drwxrwxr-x  3 alex alex      4096 Nov  7 16:25 zsh-extract [master] ✔●
-drwxrwxr-x  3 alex alex      4096 Out  5 09:22 zsh-git-keep-autocomplete [master] ✔
-drwxrwxr-x  3 alex alex      4096 Set 13 14:39 zsh-path-environment-explorer [master] ✔
-drwxrwxr-x  2 alex alex      4096 Ago  6 01:23 zsh-test
-drwxrwxr-x  3 alex alex      4096 Ago 12 16:57 zsh-vim-crtl-z [master] ✔✚
+```sh
+git-explorer explore ~/code
 ```
 
-Those symbols means respectively:
+Include nested repositories such as vendored checkouts or submodules:
 
-```
-● - unstaged files
-✖ - conflict files
-✚ - staged files ready to commit
-✔ - your branch is up-to-date with remote
+```sh
+git-explorer explore ~/code --nested
 ```
 
-## Release History
+Decorate the direct children of a folder:
 
-* 0.1.0
-    * Work in progress.
+```sh
+git-explorer explore ~/code --light
+```
 
-## Roadmap
+Override the branch used for sync comparison:
 
-* Implement more symbols to express the state of the repository (https://www.reddit.com/r/zsh/comments/2jvi61/where_can_i_find_symbol_codes_for_the_fancy/)
+```sh
+git-explorer current --default-branch main
+```
 
-## Meta
+Use a different remote than `origin`:
 
-Alex Rocha - [about.me](http://about.me/alex.rochas)
+```sh
+git-explorer current --remote upstream
+```
 
+Refresh the remote before computing sync:
+
+```sh
+git-explorer current --fetch
+git-explorer explore ~/code --fetch
+```
+
+Force or disable ANSI colors:
+
+```sh
+git-explorer current --color
+git-explorer explore ~/code --no-color
+```
+
+## Format Tokens
+
+Templates work like simple string interpolation. Any token below can be embedded inside `--format`:
+
+```text
+$status         # symbols like ✔, ✚, ●, ✖
+$statusText     # clean, staged, unstaged, conflicted, untracked
+$project        # repository folder name
+$path           # absolute repository path
+$currentBranch  # checked-out branch
+$mainBranch     # detected default branch
+$defaultBranch  # alias for $mainBranch
+$sync           # in-sync, ahead, behind, diverged, detached, unknown
+$remote         # remote URL
+$host           # remote host, e.g. github.com
+$owner          # remote owner/org name
+$ownerType      # personal, company, unknown
+```
+
+Examples:
+
+```sh
+git-explorer current --format '$status $currentBranch -> $mainBranch [$sync]'
+git-explorer explore ~/code --format '$project $currentBranch $mainBranch $sync'
+git-explorer explore ~/code --light --format '[$ownerType] [$currentBranch|$mainBranch|$sync] $status'
+```
+
+Colors are enabled automatically on a TTY and suppressed when piped. Use `--color` to force them on or `--no-color` to force them off. `NO_COLOR=1` also disables color output.
+
+## Filtering Colored Output
+
+When you pipe output through `grep` or `rg`, force colors on in both commands:
+
+```sh
+git-explorer explore ~/code --color \
+  --format '$project $status $currentBranch $mainBranch $sync $ownerType $owner' \
+  | grep --color=always 'diverged\|behind\|ahead'
+```
+
+```sh
+git-explorer explore ~/code --color \
+  --format '$project $status $currentBranch $mainBranch $sync $ownerType $owner' \
+  | rg --color=always 'diverged|behind|ahead'
+```
+
+If you want to page through the filtered results without losing ANSI colors:
+
+```sh
+git-explorer explore ~/code --color \
+  --format '$project $status $currentBranch $mainBranch $sync $ownerType $owner' \
+  | rg --color=always 'personal|company|unknown' \
+  | less -R
+```
+
+You can also set reusable environment variables:
+
+```sh
+export GIT_EXPLORER_FORMAT='$status $project $currentBranch $mainBranch $sync'
+export GIT_EXPLORER_LIGHT_FORMAT='[$currentBranch|$mainBranch|$sync] $status'
+```
+
+## Ownership Detection
+
+`$ownerType` uses the GitHub repository API when the remote host is `github.com`.
+
+- `Organization` is mapped to `company`
+- `User` is mapped to `personal`
+- private or unsupported remotes fall back to `unknown`
+
+Owner lookups are cached on disk between runs in `XDG_CACHE_HOME/git-explorer/owner_types.json` or `~/.cache/git-explorer/owner_types.json` by default. The cache TTL is 7 days and can be adjusted with `GIT_EXPLORER_OWNER_CACHE_TTL`.
+
+If you need better GitHub API access for private repositories, set `GITHUB_TOKEN` or `GH_TOKEN`.
+
+## Sync Semantics
+
+`$sync` compares the current branch against the repository default branch.
+
+By default, it uses the refs already present in your local clone, such as `origin/HEAD` or `origin/main`.
+
+If you want the latest remote state first, pass `--fetch`.
